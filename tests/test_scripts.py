@@ -20,22 +20,40 @@ REQ = {"ritm": "RITM0012345", "sctask": "SCTASK0012345", "account_name": "rme-or
        "budget_approver": "ann.wu@corp.com", "requested_for": "jane.doe@corp.com"}
 
 
-def _v(x):
-    """python-hcl2 < 5 wraps attribute values in a list."""
-    return x[0] if isinstance(x, list) else x
+def _clean(x):
+    """Make python-hcl2 output the same across versions.
+
+    < 5 wraps values in lists; 8.x keeps the quotes around names and strings
+    and adds __is_block__ markers. This returns plain dicts and strings.
+    """
+    if isinstance(x, list):
+        return _clean(x[0]) if len(x) == 1 else [_clean(i) for i in x]
+    if isinstance(x, dict):
+        return {_clean(k): _clean(v) for k, v in x.items() if not str(k).startswith("__")}
+    if isinstance(x, str) and len(x) >= 2 and x[0] == x[-1] == '"':
+        return x[1:-1]
+    return x
 
 
 def test_creates_valid_terraform(tmp_path):
     r = new_account.create(REQ, tf_dir=tmp_path, defaults=DEFAULTS)
     assert r["status"] == "created" and r["branch"] == "account/RITM0012345-rme-orders-nonprod"
-    tf = hcl2.loads((tmp_path / "account_rme-orders-nonprod.tf").read_text())
-    module = tf["module"][0]["account_rme_orders_nonprod"]
-    assert _v(module["source"]) == "./modules/aws-account"
-    assert _v(module["account_name"]) == "rme-orders-nonprod"
-    assert _v(module["email"]) == "aws+rme-orders-nonprod@REPLACE-company.com"
-    tags = _v(module["tags"])
-    assert tags["Technical:PlatformOwner"] == "tom.lee@corp.com" and tags["ServiceNow:RITM"] == "RITM0012345"
-    assert "account_rme_orders_nonprod_id" in tf["output"][0]
+    # tf = hcl2.loads((tmp_path / "account_rme-orders-nonprod.tf").read_text())
+    # module = tf["module"][0]["account_rme_orders_nonprod"]
+    # assert _v(module["source"]) == "./modules/aws-account"
+    # assert _v(module["account_name"]) == "rme-orders-nonprod"
+    # assert _v(module["email"]) == "aws+rme-orders-nonprod@REPLACE-company.com"
+    # tags = _v(module["tags"])
+    # assert tags["Technical:PlatformOwner"] == "tom.lee@corp.com" and tags["ServiceNow:RITM"] == "RITM0012345"
+    # assert "account_rme_orders_nonprod_id" in tf["output"][0]
+    tf = _clean(hcl2.loads((tmp_path / "account_rme-orders-nonprod.tf").read_text()))
+    module = tf["module"]["account_rme_orders_nonprod"]
+    assert module["source"] == "./modules/aws-account"
+    assert module["account_name"] == "rme-orders-nonprod"
+    assert module["email"] == "aws+rme-orders-nonprod@REPLACE-company.com"
+    assert module["tags"]["Technical:PlatformOwner"] == "tom.lee@corp.com"
+    assert module["tags"]["ServiceNow:RITM"] == "RITM0012345"
+    assert "account_rme_orders_nonprod_id" in tf["output"]
 
 
 def test_rerun_for_same_ritm_is_safe(tmp_path):
