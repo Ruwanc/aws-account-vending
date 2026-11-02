@@ -1,4 +1,4 @@
-# Approved ServiceNow request -> new account file -> pull request.
+# Approved ServiceNow request -> new account file -> pull request V1.
 #
 # Started by ServiceNow (repository_dispatch, event type "aws-account-request") once the
 # manager approved and the SCTASK was assigned to Cloud Engineering, or by hand from the
