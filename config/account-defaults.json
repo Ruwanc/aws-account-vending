@@ -1,0 +1,14 @@
+{
+  "_comment": "Settings used by scripts/new_account.py. Replace the REPLACE values before the first real run.",
+  "module_source": "./modules/aws-account",
+  "parent_ou_id": "ou-REPLACE-xxxxxxxx",
+  "email_pattern": "aws+{account_name}@REPLACE-company.com",
+  "default_branch": "master",
+  "tags": {
+    "Technical:ApplicationName": "{app_team_name}",
+    "Technical:PlatformOwner": "{technical_owner}",
+    "Business:BudgetApprover": "{budget_approver}",
+    "Business:SupportGroup": "{support_group}",
+    "ServiceNow:RITM": "{ritm}"
+  }
+}

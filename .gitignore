@@ -1,0 +1,12 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan*
+plan.txt
+outputs.json
+pr_body.md
+__pycache__/
+.pytest_cache/
+.venv/
+*.pem
